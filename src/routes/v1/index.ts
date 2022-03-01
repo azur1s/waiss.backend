@@ -1,12 +1,19 @@
-import express, { Router } from "express";
-import { users } from "./users";
+import { DatabaseManager } from "../../database/DatabaseManager";
+import { UserEndpoints } from "./users";
+import { EndpointGroup } from "../../EndpointGroup";
 
-export const v1: Router = express.Router();
+export class v1 extends EndpointGroup {
+  constructor(public db: DatabaseManager) {
+    super(db);
+  }
 
-const HELLO_WORLD = JSON.stringify({
-  message: "Hello World",
-});
-
-v1.get("/", async (req, res) => res.send(HELLO_WORLD));
-v1.get("/ping", async (req, res) => res.send());
-v1.use("/users", users);
+  protected override registerRoutes(): void {
+    this.router.get("/", async (req, res) =>
+      res.send({
+        message: "Hello World",
+      })
+    );
+    this.router.get("/ping", async (req, res) => res.send());
+    this.router.use("/users", new UserEndpoints(this.db).getRoutes());
+  }
+}

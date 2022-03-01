@@ -1,36 +1,48 @@
-import express, { Router } from "express";
-import auth from "../../middleware/auth";
-import { createUser, getUser, getUsers, loginUser } from "../../services/user.service";
-import { MachineDocument, MachineObject } from "../../types/machine";
-import {
-  LoggedInRequest,
-  UserDocument,
-  UserLoginInput,
-  UserLoginResultSafe,
-  UserObject,
-  UserSignupInput,
-  UserSignupResultSafe,
-} from "../../types/user";
-import { Validators } from "../../utils/validators";
+import { DatabaseManager, IUser } from "../../database/DatabaseManager";
+import { EndpointGroup } from "../../EndpointGroup";
+import { LoggedInRequest, UserLoginInput, UserSignupInput } from "../../types";
 
-export const users: Router = express.Router();
+export class UserEndpoints extends EndpointGroup {
+  constructor(public db: DatabaseManager) {
+    super(db);
+    this.registerRoutes();
+  }
 
-users.get<{}, UserObject>("/users/me", auth, (req: LoggedInRequest, res) => res.json(cleanUser(req.user!)));
+  protected override registerRoutes(): void {
+    this.router.get("/users/me", this.auth, (req: LoggedInRequest, res) => res.json());
 
-users.get<{ uuid: string }, UserObject>("/users/uuid/:uuid", auth, async (req: LoggedInRequest, res) =>
-  res.json(cleanUser(await getUser({ uuid: req.params.uuid })))
-);
+    this.router.get("/users/:key/:value", this.auth, async (req: LoggedInRequest, res) => {
+      let promise: Promise<IUser>;
+      switch (req.params.key) {
+        case "uuid":
+          promise = this.db.find_user_by_uuid(req.params.uuid);
+          break;
+        case "username":
+          promise = this.db.find_user_by_username(req.params.username);
+          break;
+        case "email":
+          promise = this.db.find_user_by_email(req.params.email);
+          break;
+        default:
+          promise = Promise.reject({ err: "Invalid user key" });
+          break;
+      }
 
-users.post<{}, UserSignupResultSafe | { error: string }, UserSignupInput>("/auth/signup", async (req, res) =>
-  createUser(req.body).then(
-    ({ user, token }) => res.status(201).json({ user: cleanUser(user), token }),
-    (reason) => res.status(400).json({ error: reason })
-  )
-);
+      promise.then((user) => res.json(user)).catch((err) => res.status(400).json(err));
+    });
 
-users.post<{}, UserLoginResultSafe | { error: string }, UserLoginInput>("/auth/login", async (req, res) =>
-  loginUser(req.body).then(
-    ({ user, token }) => res.status(200).json({ user: cleanUser(user), token }),
-    (reason) => res.status(400).json({ error: reason })
-  )
-);
+    this.router.post<{}, {}, UserSignupInput>("/auth/signup", async (req, res) =>
+      this.db
+        .new_user(req.body)
+        .then((result) => res.status(201).json(result))
+        .catch((err) => res.status(400).json(err))
+    );
+
+    this.router.post<{}, {}, UserLoginInput>("/auth/login", async (req, res) =>
+      this.db
+        .login_user(req.body)
+        .then((result) => res.status(200).json(result))
+        .catch((err) => res.status(400).json(err))
+    );
+  }
+}
