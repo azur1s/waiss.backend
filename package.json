@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon ./src/index.ts"
+    "dev": "nodemon ./src/index.ts",
+    "prettify": "npx prettier --write \"./**/*.ts\" && npx prettier --write \"./**/*.json\""
   },
   "repository": {
     "type": "git",

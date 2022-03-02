@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { Validators } from "../validators";
 import { MongoServerError } from "mongodb";
 import bcrypt from "bcrypt";
+import { Logger } from "../util/logger";
 
 export interface IUser extends mongoose.Document {
   avatar: string; // The avatar url of the user
@@ -72,7 +73,7 @@ const preSaveMiddleware = async function <
   }
 
   this.updated_at = Date.now();
-  console.log(`Middleware updated at: ${this.created_at}`);
+  Logger.info(`Middleware updated at: ${this.created_at}`);
 
   return next();
 };
@@ -120,12 +121,12 @@ export class DatabaseManager {
    * Connects to the MongoDB
    */
   public async connectDatabase() {
-    console.log(`Connecting to MongoDB...`);
+    Logger.info(`Connecting to MongoDB...`);
     return mongoose
       .connect(this.database_url, { appName: this.app_name })
-      .then(() => console.log("MongoDB Connected"))
+      .then(() => Logger.info("MongoDB Connected"))
       .catch((reason) => {
-        console.log("MongoDB failed to connect, reason: ", reason);
+        Logger.info("MongoDB failed to connect, reason: ", reason);
         process.exit(1);
       });
   }

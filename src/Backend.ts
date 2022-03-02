@@ -6,6 +6,7 @@ import morgan from "morgan";
 import { DatabaseManager } from "./database/DatabaseManager";
 import cors from "./middleware/cors";
 import { v1 } from "./routes/v1";
+import { Logger } from "./util/logger";
 
 export class Backend {
   public express: Express = express()
@@ -38,6 +39,6 @@ export class Backend {
 
   private listen() {
     const port = parseFloat(process.env.PORT!);
-    this.server.listen(port, () => console.log(`[INDEX] Started on port http://localhost:${port}`));
+    this.server.listen(port, () => Logger.info(`Started on port http://localhost:${port}`));
   }
 }

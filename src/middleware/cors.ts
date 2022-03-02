@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import express, { NextFunction } from "express";
+import { Logger } from "../util/logger";
 
 export default async function (req: express.Request, res: express.Response, next: NextFunction) {
   // Website you wish to allow to connect
@@ -15,7 +16,7 @@ export default async function (req: express.Request, res: express.Response, next
   // to the API (e.g. in case you use sessions)
   res.setHeader("Access-Control-Allow-Credentials", "true");
 
-  console.log(`Request from IP: ${chalk.cyan(req.headers["cf-connecting-ip"])}`);
+  Logger.info(`Request from IP: ${chalk.cyan(req.headers["cf-connecting-ip"])}`);
 
   // Pass to next layer of middleware
   next();
