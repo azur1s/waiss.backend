@@ -126,7 +126,7 @@ export class DatabaseManager {
       .connect(this.database_url, { appName: this.app_name })
       .then(() => Logger.info("MongoDB Connected"))
       .catch((reason) => {
-        Logger.info("MongoDB failed to connect, reason: ", reason);
+        Logger.error("MongoDB failed to connect, reason: ", reason);
         process.exit(1);
       });
   }
